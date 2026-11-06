@@ -1,14 +1,32 @@
 package com.loadtesting;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 import java.sql.Timestamp;
 
 public class Restaurant {
     private Long id;
+
+    @NotBlank(message = "Restaurant name is required")
+    @Size(max = 255, message = "Restaurant name must be at most 255 characters")
     private String name;
+
+    @Size(max = 500, message = "Address must be at most 500 characters")
     private String address;
+
+    @Size(max = 100, message = "Cuisine type must be at most 100 characters")
     private String cuisineType;
+
+    @DecimalMin(value = "0.0", message = "Rating cannot be below 0")
+    @DecimalMax(value = "5.0", message = "Rating cannot exceed 5")
     private Double rating;
+
+    @Size(max = 20, message = "Phone must be at most 20 characters")
     private String phone;
+
     private Boolean isActive;
     private Timestamp createdAt;
     private Timestamp updatedAt;
