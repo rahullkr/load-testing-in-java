@@ -1,6 +1,5 @@
 package com.loadtesting;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -9,27 +8,29 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.List;
 
 @Repository
 public class RestaurantRepository {
 
-    @Autowired
-    JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    public RestaurantRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     private final RowMapper<Restaurant> rowMapper = (rs, rowNum) -> {
-        Restaurant r = new Restaurant();
-        r.setId(rs.getLong("id"));
-        r.setName(rs.getString("name"));
-        r.setAddress(rs.getString("address"));
-        r.setCuisineType(rs.getString("cuisine_type"));
-        r.setRating(rs.getDouble("rating"));
-        r.setPhone(rs.getString("phone"));
-        r.setIsActive(rs.getBoolean("is_active"));
-        r.setCreatedAt(rs.getTimestamp("created_at"));
-        r.setUpdatedAt(rs.getTimestamp("updated_at"));
-        return r;
+        Restaurant restaurant = new Restaurant();
+        restaurant.setId(rs.getLong("id"));
+        restaurant.setName(rs.getString("name"));
+        restaurant.setAddress(rs.getString("address"));
+        restaurant.setCuisineType(rs.getString("cuisine_type"));
+        restaurant.setRating(rs.getDouble("rating"));
+        restaurant.setPhone(rs.getString("phone"));
+        restaurant.setIsActive(rs.getBoolean("is_active"));
+        restaurant.setCreatedAt(rs.getTimestamp("created_at"));
+        restaurant.setUpdatedAt(rs.getTimestamp("updated_at"));
+        return restaurant;
     };
 
     public List<Restaurant> findAll() {
@@ -37,38 +38,49 @@ public class RestaurantRepository {
     }
 
     public Restaurant findById(Long id) {
-        List<Restaurant> results = jdbcTemplate.query("SELECT * FROM restaurant WHERE id = ?", rowMapper, id);
+        List<Restaurant> results = jdbcTemplate.query(
+                "SELECT * FROM restaurant WHERE id = ?",
+                rowMapper,
+                id
+        );
         return results.isEmpty() ? null : results.get(0);
     }
 
     public Restaurant save(Restaurant restaurant) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
+
         jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO restaurant (name, address, cuisine_type, rating, phone, is_active) VALUES (?, ?, ?, ?, ?, ?)",
-                Statement.RETURN_GENERATED_KEYS
+            PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO restaurant (name, address, cuisine_type, rating, phone, is_active) VALUES (?, ?, ?, ?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS
             );
-            ps.setString(1, restaurant.getName());
-            ps.setString(2, restaurant.getAddress());
-            ps.setString(3, restaurant.getCuisineType());
-            ps.setDouble(4, restaurant.getRating());
-            ps.setString(5, restaurant.getPhone());
-            ps.setBoolean(6, restaurant.getIsActive());
-            return ps;
+            statement.setString(1, restaurant.getName());
+            statement.setString(2, restaurant.getAddress());
+            statement.setString(3, restaurant.getCuisineType());
+            statement.setObject(4, restaurant.getRating());
+            statement.setString(5, restaurant.getPhone());
+            statement.setBoolean(6, Boolean.TRUE.equals(restaurant.getIsActive()));
+            return statement;
         }, keyHolder);
-        restaurant.setId(keyHolder.getKey().longValue());
+
+        Number generatedId = keyHolder.getKey();
+        if (generatedId != null) {
+            restaurant.setId(generatedId.longValue());
+        }
         return restaurant;
     }
 
-    public Restaurant update(Long id, Restaurant restaurant) {
-        jdbcTemplate.update(
-            "UPDATE restaurant SET name=?, address=?, cuisine_type=?, rating=?, phone=?, is_active=?, updated_at=? WHERE id=?",
-            restaurant.getName(), restaurant.getAddress(), restaurant.getCuisineType(),
-            restaurant.getRating(), restaurant.getPhone(), restaurant.getIsActive(),
-            new Timestamp(System.currentTimeMillis()), id
+    public int update(Long id, Restaurant restaurant) {
+        return jdbcTemplate.update(
+                "UPDATE restaurant SET name = ?, address = ?, cuisine_type = ?, rating = ?, phone = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                restaurant.getName(),
+                restaurant.getAddress(),
+                restaurant.getCuisineType(),
+                restaurant.getRating(),
+                restaurant.getPhone(),
+                Boolean.TRUE.equals(restaurant.getIsActive()),
+                id
         );
-        restaurant.setId(id);
-        return restaurant;
     }
 
     public int deleteById(Long id) {
@@ -76,6 +88,10 @@ public class RestaurantRepository {
     }
 
     public List<Restaurant> findByName(String name) {
-        return jdbcTemplate.query("SELECT * FROM restaurant WHERE name LIKE ?", rowMapper, "%" + name + "%");
+        return jdbcTemplate.query(
+                "SELECT * FROM restaurant WHERE name LIKE ?",
+                rowMapper,
+                "%" + name + "%"
+        );
     }
 }
