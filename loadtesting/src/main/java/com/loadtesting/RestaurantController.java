@@ -1,6 +1,6 @@
 package com.loadtesting;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,51 +11,50 @@ import java.util.List;
 @RequestMapping("/api/restaurants")
 public class RestaurantController {
 
-    @Autowired
-    private RestaurantService restaurantService;
+    private final RestaurantService restaurantService;
 
-    @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<Restaurant>> getAllRestaurants() {
-        List<Restaurant> restaurants = restaurantService.getAllRestaurants();
-        return new ResponseEntity<>(restaurants, HttpStatus.OK);
+    public RestaurantController(RestaurantService restaurantService) {
+        this.restaurantService = restaurantService;
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    @GetMapping
+    public ResponseEntity<List<Restaurant>> getAllRestaurants() {
+        return ResponseEntity.ok(restaurantService.getAllRestaurants());
+    }
+
+    @GetMapping("/{id}")
     public ResponseEntity<Restaurant> getRestaurantById(@PathVariable Long id) {
         Restaurant restaurant = restaurantService.getRestaurantById(id);
-        if (restaurant == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(restaurant, HttpStatus.OK);
+        return restaurant == null
+                ? ResponseEntity.notFound().build()
+                : ResponseEntity.ok(restaurant);
     }
 
-    @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<Restaurant> createRestaurant(@RequestBody Restaurant restaurant) {
+    @PostMapping
+    public ResponseEntity<Restaurant> createRestaurant(@Valid @RequestBody Restaurant restaurant) {
         Restaurant created = restaurantService.createRestaurant(restaurant);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    public ResponseEntity<Restaurant> updateRestaurant(@PathVariable Long id, @RequestBody Restaurant restaurant) {
+    @PutMapping("/{id}")
+    public ResponseEntity<Restaurant> updateRestaurant(
+            @PathVariable Long id,
+            @Valid @RequestBody Restaurant restaurant) {
         Restaurant updated = restaurantService.updateRestaurant(id, restaurant);
-        if (updated == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(updated, HttpStatus.OK);
+        return updated == null
+                ? ResponseEntity.notFound().build()
+                : ResponseEntity.ok(updated);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRestaurant(@PathVariable Long id) {
-        boolean deleted = restaurantService.deleteRestaurant(id);
-        if (!deleted) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return restaurantService.deleteRestaurant(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 
-    @RequestMapping(value = "/search", method = RequestMethod.GET)
+    @GetMapping("/search")
     public ResponseEntity<List<Restaurant>> searchByName(@RequestParam String name) {
-        List<Restaurant> results = restaurantService.searchByName(name);
-        return new ResponseEntity<>(results, HttpStatus.OK);
+        return ResponseEntity.ok(restaurantService.searchByName(name));
     }
 }
