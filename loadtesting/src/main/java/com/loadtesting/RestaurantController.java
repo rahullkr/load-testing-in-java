@@ -18,8 +18,18 @@ public class RestaurantController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Restaurant>> getAllRestaurants() {
-        return ResponseEntity.ok(restaurantService.getAllRestaurants());
+    public ResponseEntity<PageResponse<Restaurant>> getAllRestaurants(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        if (page < 0) {
+            throw new IllegalArgumentException("Page index must be zero or greater");
+        }
+        if (size < 1 || size > 100) {
+            throw new IllegalArgumentException("Page size must be between 1 and 100");
+        }
+
+        return ResponseEntity.ok(restaurantService.getAllRestaurants(page, size));
     }
 
     @GetMapping("/{id}")
@@ -55,6 +65,9 @@ public class RestaurantController {
 
     @GetMapping("/search")
     public ResponseEntity<List<Restaurant>> searchByName(@RequestParam String name) {
+        if (name.isBlank()) {
+            throw new IllegalArgumentException("Search name must not be blank");
+        }
         return ResponseEntity.ok(restaurantService.searchByName(name));
     }
 }
