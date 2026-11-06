@@ -33,7 +33,7 @@ public class RestaurantRepository {
         return restaurant;
     };
 
-    public List<Restaurant> findAll(int limit, int offset) {
+    public List<Restaurant> findAll(int limit, long offset) {
         return jdbcTemplate.query(
                 "SELECT * FROM restaurant ORDER BY id LIMIT ? OFFSET ?",
                 rowMapper,
