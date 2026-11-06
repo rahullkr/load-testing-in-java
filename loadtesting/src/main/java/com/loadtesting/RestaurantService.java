@@ -13,8 +13,21 @@ public class RestaurantService {
         this.restaurantRepository = restaurantRepository;
     }
 
-    public List<Restaurant> getAllRestaurants() {
-        return restaurantRepository.findAll();
+    public PageResponse<Restaurant> getAllRestaurants(int page, int size) {
+        long totalElements = restaurantRepository.countAll();
+        int offset = Math.multiplyExact(page, size);
+        List<Restaurant> content = restaurantRepository.findAll(size, offset);
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        return new PageResponse<>(
+                content,
+                page,
+                size,
+                totalElements,
+                totalPages,
+                page == 0,
+                page >= totalPages - 1
+        );
     }
 
     public Restaurant getRestaurantById(Long id) {
