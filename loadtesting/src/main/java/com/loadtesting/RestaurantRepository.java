@@ -33,8 +33,18 @@ public class RestaurantRepository {
         return restaurant;
     };
 
-    public List<Restaurant> findAll() {
-        return jdbcTemplate.query("SELECT * FROM restaurant", rowMapper);
+    public List<Restaurant> findAll(int limit, int offset) {
+        return jdbcTemplate.query(
+                "SELECT * FROM restaurant ORDER BY id LIMIT ? OFFSET ?",
+                rowMapper,
+                limit,
+                offset
+        );
+    }
+
+    public long countAll() {
+        Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM restaurant", Long.class);
+        return count == null ? 0L : count;
     }
 
     public Restaurant findById(Long id) {
