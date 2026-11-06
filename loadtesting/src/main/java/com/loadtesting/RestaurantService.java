@@ -1,6 +1,5 @@
 package com.loadtesting;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -8,8 +7,11 @@ import java.util.List;
 @Service
 public class RestaurantService {
 
-    @Autowired
-    private RestaurantRepository restaurantRepository;
+    private final RestaurantRepository restaurantRepository;
+
+    public RestaurantService(RestaurantRepository restaurantRepository) {
+        this.restaurantRepository = restaurantRepository;
+    }
 
     public List<Restaurant> getAllRestaurants() {
         return restaurantRepository.findAll();
@@ -24,20 +26,12 @@ public class RestaurantService {
     }
 
     public Restaurant updateRestaurant(Long id, Restaurant restaurant) {
-        Restaurant existing = restaurantRepository.findById(id);
-        if (existing == null) {
-            return null;
-        }
-        return restaurantRepository.update(id, restaurant);
+        int updatedRows = restaurantRepository.update(id, restaurant);
+        return updatedRows == 0 ? null : restaurant;
     }
 
     public boolean deleteRestaurant(Long id) {
-        Restaurant existing = restaurantRepository.findById(id);
-        if (existing == null) {
-            return false;
-        }
-        restaurantRepository.deleteById(id);
-        return true;
+        return restaurantRepository.deleteById(id) > 0;
     }
 
     public List<Restaurant> searchByName(String name) {
