@@ -26,7 +26,7 @@ flowchart TD
     JM --> OUT[JMeter results file: results.jtl]
 ```
 
-The API exposes restaurant CRUD and search operations. The Python utility seeds test data through the API, and JMeter exercises read, create and search workloads.
+The API exposes restaurant CRUD and search operations. The list endpoint supports pagination using `page` and `size` query parameters (defaults: page `0`, size `20`; maximum size: `100`). The Python utility seeds test data through the API, and JMeter exercises read, create and search workloads.
 
 ## Features
 
@@ -43,12 +43,22 @@ Base URL: `http://localhost:8080`
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| `GET` | `/api/restaurants` | List restaurants |
+| `GET` | `/api/restaurants?page=0&size=20` | List restaurants with pagination (page starts at 0; size 1–100) |
 | `GET` | `/api/restaurants/{id}` | Fetch a restaurant by ID |
 | `POST` | `/api/restaurants` | Create a restaurant |
 | `PUT` | `/api/restaurants/{id}` | Update a restaurant |
 | `DELETE` | `/api/restaurants/{id}` | Delete a restaurant |
 | `GET` | `/api/restaurants/search?name={term}` | Search by name |
+
+### Paginated listing example
+
+```http
+GET /api/restaurants?page=0&size=20
+```
+
+The response includes the current page content and metadata: `page`, `size`, `totalElements`, `totalPages`, `first` and `last`.
+
+Invalid page values and page sizes outside 1–100 return a `400 Bad Request`. Invalid request bodies return structured validation details. Unexpected server errors return a generic message rather than exposing internal exception details.
 
 ## Load-test configuration
 
