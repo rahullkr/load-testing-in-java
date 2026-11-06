@@ -15,7 +15,7 @@ public class RestaurantService {
 
     public PageResponse<Restaurant> getAllRestaurants(int page, int size) {
         long totalElements = restaurantRepository.countAll();
-        int offset = Math.multiplyExact(page, size);
+        long offset = (long) page * size;
         List<Restaurant> content = restaurantRepository.findAll(size, offset);
         int totalPages = (int) Math.ceil((double) totalElements / size);
 
