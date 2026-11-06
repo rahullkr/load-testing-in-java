@@ -156,6 +156,17 @@ jmeter
 
 Then load the generated `results.jtl` file in a listener such as **Summary Report** or **Aggregate Report**.
 
+## Automated tests
+
+The project includes JUnit 5 and Mockito unit tests for the service layer, covering CRUD delegation, missing records, search and pagination metadata.
+
+Run the test suite from the application directory:
+
+```bash
+cd loadtesting
+mvn test
+```
+
 ## Benchmark results
 
 No benchmark numbers are published in this repository yet. After running the test, record the environment and measured values here rather than relying on the configured VU count.
